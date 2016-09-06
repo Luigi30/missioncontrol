@@ -20,3 +20,7 @@ Once you have the serial connection configured, run KSPSERL.PRG. You'll see a bu
 
 # Screenshots
 http://i.imgur.com/p41c0C0.gif
+
+# Known Problems
+You can't quit the application for some reason!
+Some of the data fields will freak out now and then, I'm still working on that.
