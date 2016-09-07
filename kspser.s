@@ -25,7 +25,7 @@
 	xdef ByteTStg
 
 ;Are we in debug mode?
-DEBUG_PACKET equ 0
+DEBUG_PACKET equ 1
 
 SECTION CODE
 
@@ -82,26 +82,38 @@ M_FlightFloatField 	MACRO
 				    ror.w   #8, d0
 					JSR	FloatToString
 					;PrintString	lbl_\1
-					PrintString BlankOutField
-					PrintString ScratchBuffer
-					PrintString unit_\1
+
+					;Construct a string from BlankOutField, ScratchBuffer, and unit_\1
+					lea		StringBuilding, a0
+					lea		BlankOutField, a1
+					lea		ScratchBuffer, a2
+					lea		unit_\1, a3
+
+.loopBlankOut_\@:
+					move.b	(a1)+,(a0)+
+					cmp.b	#0,(a1)
+					bne		.loopBlankOut_\@
+.loopScratch_\@:
+					move.b	(a2)+,(a0)+
+					cmp.b	#0, (a2)
+					bne		.loopScratch_\@
+.loopUnit_\@:
+					move.b	(a3)+,(a0)+
+					cmp.b	#0, (a3)
+					bne		.loopUnit_\@
+
+					move.b	#0,(a0)+
+
+					PrintString StringBuilding
 					ENDM
 	
 	even
 _drop_to_asm:
-	;get video memory addresses
+	;do some setup
 	jsr	GetPhysicalBase
 	jsr	GetLogicalBase
-
 	jsr	Set96008N1
 	jsr	FlushSerialBuffer
-
-;WriteSerial:
-;	PUSH	#$41
-;	GEMDOS	c_auxout, 4
-;
-;	lea	msgHelloWorld,a1
-;	jsr	C_auxws
 
 ClearScreen:
 	PrintString	ClearHome
@@ -374,6 +386,7 @@ GFX_LOGICAL_BASE	dc.l	0
 ;Buffers
 FloatBuffer		ds.b	8
 ScratchBuffer	ds.b	128
+StringBuilding	ds.b	128
 	
 IncomingBuffer	ds.b	512 ;allocate 512 bytes for serial incoming
 OutgoingPayload	ds.b	512 ;payload buffer
